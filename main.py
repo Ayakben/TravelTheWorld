@@ -10,6 +10,23 @@ save_folder = os.path.abspath(os.getcwd())+"/saves"
 client = commands.Bot(command_prefix='$')
 
 directions = ['⬆','⬇','⬅','➡']
+combat = ['🗡️', '🏃']
+
+async def combatEncounter(ctx):
+    message = await ctx.send("You encounter an asshole. Do you fight or flee? Look I'm paid to code not write")
+    for emoji in combat:
+        await message.add_reaction(emoji)
+    def check(reaction, user):
+        return str(reaction.emoji) in combat and user == ctx.author
+    reaction, user = await client.wait_for('reaction_add', check = check)
+
+    if(reaction.emoji == '🗡️'):
+        await ctx.send('So you have chosen to fight')
+    if (reaction.emoji == '🏃'):
+        await ctx.send('So you have chosen to flee')
+    else:
+        await ctx.send('The bot is broken send help')
+
 
 command_list = ['move']
 
@@ -110,7 +127,7 @@ async def action(ctx):
     def check(reaction, user):
         return str(reaction.emoji) in directions and user == ctx.author
     reaction, user = await client.wait_for('reaction_add', check = check)
-    await ctx.send(reaction)
+    await combatEncounter(ctx)
 
 @client.command()
 async def react(ctx):
