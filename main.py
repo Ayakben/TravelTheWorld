@@ -1,9 +1,12 @@
 import discord
 from discord.ext import commands
 import json
+from enum import Enum
 
 token = 'Nzc0NjgwMzExMTk1ODkzODAw.X6bTQw.yjYLZGEBc6PVOWS5PiyXdaNsKVg'
 client = commands.Bot(command_prefix = '$')
+
+directions = ['⬆','⬇','⬅','➡']
 
 @client.command()
 async def ping(ctx):
@@ -35,14 +38,22 @@ async def startgame(ctx):
 
 @client.command()
 async def action(ctx):
-    def check(m):
-        return m.content == 'hello' and m.channel == ctx.channel and m.author == ctx.author
-    reaction = await client.wait_for('reaction_add', check = check)
-    await ctx.send('yo')
+    message = await ctx.send("What direction would you like to go?")
+
+    #Puts all the direction emojis under the message
+    for direction in directions:
+        await message.add_reaction(direction)
+
+    def check(reaction, user):
+        return str(reaction.emoji) in directions and user == ctx.author
+    reaction, user = await client.wait_for('reaction_add', check = check)
+    await ctx.send(reaction)
 
 @client.command()
 async def react(ctx):
     message = await ctx.send('I want to kill myself')
     await message.add_reaction('👍')
+
+
 
 client.run(token)#Runs the bot
