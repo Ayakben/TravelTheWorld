@@ -3,6 +3,8 @@ from discord.ext import commands
 import json
 import datetime
 import os
+import random
+from enum import Enum
 
 token = 'Nzc0NjgwMzExMTk1ODkzODAw.X6bTQw.yjYLZGEBc6PVOWS5PiyXdaNsKVg'
 
@@ -11,6 +13,8 @@ client = commands.Bot(command_prefix='$')
 
 directions = ['⬆','⬇','⬅','➡']
 combat = ['🗡️', '🏃']
+
+command_list = ['move']
 
 async def combatEncounter(ctx):
     message = await ctx.send("You encounter an asshole. Do you fight or flee? Look I'm paid to code not write")
@@ -22,13 +26,23 @@ async def combatEncounter(ctx):
 
     if(reaction.emoji == '🗡️'):
         await ctx.send('So you have chosen to fight')
-    if (reaction.emoji == '🏃'):
+    elif (reaction.emoji == '🏃'):
         await ctx.send('So you have chosen to flee')
     else:
-        await ctx.send('The bot is broken send help')
+        await ctx.send('The bot is broken! SEND HELP!!')
 
+loot = {
+    'Sword': '🗡️',
+    'Shield': '🛡️'
+}
 
-command_list = ['move']
+async def lootEncounter(ctx):
+    RNJesus = random.randrange(2)
+    def check(reaction, user):
+        return str(reaction.emoji) == loot[list(loot)[RNJesus]] and user == ctx.author
+    message = await ctx.send(f'You found a {list(loot)[RNJesus]}! Please click on it to pick it up')
+    await message.add_reaction(loot[list(loot)[RNJesus]])
+    await client.wait_for('add_reaction', check = check)
 
 @client.command()
 async def ping(ctx):
@@ -127,13 +141,19 @@ async def action(ctx):
     def check(reaction, user):
         return str(reaction.emoji) in directions and user == ctx.author
     reaction, user = await client.wait_for('reaction_add', check = check)
-    await combatEncounter(ctx)
+    #TODO: Make the movement matter (right now it doesnt matter what direction you pick)
+
+    #Look I know that this is terrible code but Python is stupid and doesnt have switch statements, and I couldn't be bothered to make lamdas or enum functions so deal with it; I have other shit to do and you guys are not helping
+    RNJesus = random.randrange(2)
+    if RNJesus == 0:
+        await combatEncounter(ctx)
+    elif RNJesus == 1:
+        await lootEncounter(ctx)
+
 
 @client.command()
 async def react(ctx):
     message = await ctx.send('I want to kill myself')
     await message.add_reaction('👍')
-
-
 
 client.run(token)#Runs the bot
