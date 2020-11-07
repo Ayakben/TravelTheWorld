@@ -7,7 +7,9 @@ import os
 token = 'Nzc0NjgwMzExMTk1ODkzODAw.X6bTQw.yjYLZGEBc6PVOWS5PiyXdaNsKVg'
 
 save_folder = os.path.abspath(os.getcwd())+"/saves"
-client = commands.Bot(command_prefix = '$')
+client = commands.Bot(command_prefix='$')
+
+command_list = ['move']
 
 @client.command()
 async def ping(ctx):
@@ -23,19 +25,23 @@ async def whoami(ctx):
     await ctx.send(name[0])
 
 @client.command()
-async def action(ctx):
+async def play(ctx):
+    message_load = ""
+
     # Separate Logic that just retrieves jsonfile read based on the tag (str)
     # If there is no file, create one
     # Deletion of save is handled with different command
-    def loadsave(tag):
+    async def loadsave(tag):
 
+        flag = False
         if not os.path.isdir(save_folder):
             os.mkdir(save_folder)
 
-        save_path_guess = save_folder + "/" + tag + ".json"
+        save_path_guess = save_folder + "/" + str(tag) + ".json"
 
-        if not os.path.isdir(save_path_guess):
-            newsave(tag)
+        if not os.path.isfile(save_path_guess):
+            flag = True
+            await newsave(tag)
 
         json_read = "file_err"
 
@@ -43,7 +49,14 @@ async def action(ctx):
         with open(save_path_guess) as f:
             json_read = json.load(f)
 
-        print(json_read)
+        if flag:
+            message_load = 'Welcome, '+json_read['name']+". Please enter the journey."
+        else:
+            message_load = 'Welcome back, '+json_read['name']+". Commands?"
+
+        await ctx.send(message_load)
+
+        return json_read
 
     # Creation of new file
     # Savefile contains in json file format
@@ -58,11 +71,11 @@ async def action(ctx):
     # tested (list)
     # items (list)
     # equipment (list)
-    def newsave(tag):
-        save_path_guess = save_folder + "/" + tag + ".json"
+    async def newsave(tag):
+        save_path_guess = save_folder + "/" + str(tag) + ".json"
         json_file = {
-            'name': tag,
-            'file_creation': datetime.datetime.now(),
+            'name': str(tag),
+            'file_creation': datetime.datetime.now().isoformat(),
             'last_action': "",
             'current_loc': "",
             'fund': 0,
@@ -74,9 +87,15 @@ async def action(ctx):
         }
 
         with open(save_path_guess, 'w') as f:
-            json.dumps(json_file, f)
+            json.dump(json_file, f)
 
-    loadsave(ctx.author)
+    def command_select(m):
+        return (m.content in command_list) and m.channel == ctx.channel and m.author == ctx.author
+
+    json_read = await loadsave(ctx.author)
+
+    reaction = await client.wait_for('message', check=command_select)
+    await ctx.send('You have selected: '+str(reaction.content))
 
 
 client.run(token)#Runs the bot
