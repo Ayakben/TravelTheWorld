@@ -9,7 +9,7 @@ from enum import Enum
 token = 'Nzc0NjgwMzExMTk1ODkzODAw.X6bTQw.yjYLZGEBc6PVOWS5PiyXdaNsKVg'
 
 save_folder = os.path.abspath(os.getcwd())+"/saves"
-client = commands.Bot(command_prefix='$')
+client = commands.Bot(command_prefix = '$')
 
 directions = ['⬆','⬇','⬅','➡']
 combat = ['🗡️', '🏃']
@@ -25,7 +25,18 @@ async def combatEncounter(ctx):
     reaction, user = await client.wait_for('reaction_add', check = check)
 
     if(reaction.emoji == '🗡️'):
-        await ctx.send('So you have chosen to fight')
+        await ctx.send('⚔️So you have chosen to fight⚔️')
+        with open(f'{save_folder}/{ctx.author}.json') as f:
+            data = json.load(f)
+        def check(reaction, user):
+            return str(reaction.emoji) in data['weapons'].values() and user == ctx.author
+        message = await ctx.send('Please choose what weapon to use')
+        for weapon in data['weapons'].values():
+            await message.add_reaction(weapon)
+        reaction, user = await client.wait_for('add_reaction', check = check)
+        await ctx.send(f'You attacked with your {data["weapons"].keys()[data["weapons"].values().index(reaction)]}')
+        #TODO: Implement combat system where health changes
+
     elif (reaction.emoji == '🏃'):
         await ctx.send('So you have chosen to flee')
     else:
@@ -112,11 +123,13 @@ async def play(ctx):
             'last_action': "",
             'current_loc': "",
             'fund': 0,
+            'health': 30,
             'infection': False,
             'symptoms': {},
             'tested': {},
             'items': {},
-            'equipment': {}
+            'equipment': {},
+            'weapons': {'Fist': '✊'}
         }
 
         with open(save_path_guess, 'w') as f:
@@ -143,12 +156,16 @@ async def action(ctx):
     reaction, user = await client.wait_for('reaction_add', check = check)
     #TODO: Make the movement matter (right now it doesnt matter what direction you pick)
 
-    #Look I know that this is terrible code but Python is stupid and doesnt have switch statements, and I couldn't be bothered to make lamdas or enum functions so deal with it; I have other shit to do and you guys are not helping
-    RNJesus = random.randrange(2)
-    if RNJesus == 0:
-        await combatEncounter(ctx)
-    elif RNJesus == 1:
-        await lootEncounter(ctx)
+    RNJesus = random.randrange(20)
+    if RNJesus == 19:
+        await ctx.send('🍆Your dick is huge🍆')
+    else:
+        #Look I know that this is terrible code but Python is stupid and doesnt have switch statements, and I couldn't be bothered to make lamdas or enum functions so deal with it; I have other shit to do and you guys are not helping
+        RNJesus = random.randrange(2)
+        if RNJesus == 0:
+            await combatEncounter(ctx)
+        elif RNJesus == 1:
+            await lootEncounter(ctx)
 
 
 @client.command()
@@ -156,4 +173,4 @@ async def react(ctx):
     message = await ctx.send('I want to kill myself')
     await message.add_reaction('👍')
 
-client.run(token)#Runs the bot
+client.run(token) #Runs the bot
