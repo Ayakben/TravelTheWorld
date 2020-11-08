@@ -16,6 +16,8 @@ combat = ['🗡️', '🏃']
 
 command_list = ['move']
 
+#TODO: Implement either a state or flage system so that a player can only use certain commands while in the middle of an action
+
 async def combatEncounter(ctx):
     message = await ctx.send("You encounter an asshole. Do you fight or flee? Look I'm paid to code not write")
     for emoji in combat:
@@ -34,7 +36,6 @@ async def combatEncounter(ctx):
         for weapon in data['weapons'].values():
             await message.add_reaction(weapon)
         reaction, user = await client.wait_for('add_reaction', check = check)
-        print('got here')
         await ctx.send(f'You attacked with your {data["weapons"].keys()[data["weapons"].values().index(reaction)]}')
         #TODO: Implement combat system where health changes
 
@@ -49,12 +50,14 @@ loot = {
 }
 
 async def lootEncounter(ctx):
-    RNJesus = random.randrange(2)
+    RNJesus = random.randrange(len(loot))
     with open(f'{save_folder}/{ctx.author}.json') as f:
         data = json.load(f)
     message = await ctx.send(f'You found a {list(loot)[RNJesus]}!')
     await message.add_reaction(loot[list(loot)[RNJesus]])
-    data[list(loot)[RNJesus]] = loot[list(loot)[RNJesus]]
+    data['weapons'][list(loot)[RNJesus]] = loot[list(loot)[RNJesus]]
+    with open(f'{save_folder}/{ctx.author}.json', 'w') as f:
+        json.dump(data, f)
 
 @client.command()
 async def ping(ctx):
