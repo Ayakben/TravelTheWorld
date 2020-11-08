@@ -112,8 +112,9 @@ async def combatEncounter(ctx):
                         if preformat_damage < 0:
                             preformat_damage = 0
                         await ctx.send(f'You blocked with {weapon} and reduced the damage to {preformat_damage}!')
-                    await ctx.send(f'You have {data["health"]} left!')
+
                     data['health'] = data['health'] - preformat_damage
+                    await ctx.send(f'You have {data["health"]} HP left!')
                     if data['health'] <= 0:
                         await ctx.send('Game over.')
                         data['state'] = 0
