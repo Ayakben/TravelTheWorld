@@ -36,13 +36,16 @@ class Monster:
         self.chanceToHit = chanceToHit
 
 monsterEnums = {
-    'skeleton': Monster(5, 1, .6)
+    'skeleton': Monster(5, 1, .6),
+    'zombie': Monster(3, 1, .5)
 }
 
-#TODO: Implement either a state or flage system so that a player can only use certain commands while in the middle of an action
+#TODO: Implement either a state or flag system so that a player can only use certain commands while in the middle of an action
 
 async def combatEncounter(ctx):
-    message = await ctx.send("You encounter an asshole. Do you fight or flee? Look I'm paid to code not write")
+    RNJesus = random.randrange(len(monsterEnums))
+    monsterName = list(monsterEnums.keys())[RNJesus]
+    message = await ctx.send(f"You encountered a(n) {monsterName}. Do you fight or flee?")
     for emoji in combat:
         await message.add_reaction(emoji)
 
@@ -54,37 +57,46 @@ async def combatEncounter(ctx):
 
     if(reaction.emoji == '🗡️'):
         await ctx.send('⚔️So you have chosen to fight⚔️')
+        randomMonster = monsterEnums[monsterName] #This creates the instance of the monster the player will be fighting
         with open(f'{save_folder}/{ctx.author}.json') as f:
             data = json.load(f)
 
-        message = await ctx.send('Please choose what weapon to use')
+        #TODO: Implement combat loop
+        inCombat = True
+        while(True):
+            message = await ctx.send('Please choose what weapon to use')
 
-        weaponEmotes = []
-        for weapon in data['weapons']:
-            weaponEmotes.append(weaponEnums[weapon].emote)
-            await message.add_reaction(weaponEnums[weapon].emote)
+            weaponEmotes = []
+            for weapon in data['weapons']:
+                weaponEmotes.append(weaponEnums[weapon].emote)
+                await message.add_reaction(weaponEnums[weapon].emote)
 
-        def checktwo(reaction, user):
-            return str(reaction.emoji) in weaponEmotes and user == ctx.author
+            def checktwo(reaction, user):
+                return str(reaction.emoji) in weaponEmotes and user == ctx.author
 
-        reaction, user = await client.wait_for('reaction_add', check=checktwo)
+            reaction, user = await client.wait_for('reaction_add', check=checktwo)
 
-        for weapon in weaponEnums:
-            if(weaponEnums[weapon].emote == reaction.emoji):
-                await ctx.send(f'You attacked with your {weapon}')
+            #The player attacks
+            for weapon in weaponEnums:
+                if(weaponEnums[weapon].emote == reaction.emoji):
+                    await ctx.send(f'You attacked with your {weapon}')
+                    if(random.random() < weaponEnums[weapon].chanceToHit):
+                        await ctx.send(f'You hit the {monsterName} for {weaponEnums[weapon].damage} damage!')
+                        randomMonster.health = randomMonster.health - weaponEnums[weapon].damage
+                    else:
+                        await ctx.send('You missed')
+                    break
+            if (randomMonster.health <= 0):
+                await ctx.send(f'Congrats on beating the {monsterName}')
                 break
+            if (random.random() < randomMonster.chanceToHit):
+                await ctx.send(f'The {monsterName} does {randomMonster.damage} damage')
+                #TODO: Add player health loss and a condtitional to check if the player has been killed
+            else:
+                await ctx.send(f'The {monsterName} missed')
 
-        """
-        innards = data["weapons"]
-        midwards = list(innards.values())
-        outards = midwards.index(reaction.emoji)
-        rock = list(data["weapons"].keys())
-        paper = rock[outards]
-        sending = f'You attacked with your {paper}'
 
-        await ctx.send(sending)
-        """
-        #TODO: Implement combat system where health changes
+
 
     elif (reaction.emoji == '🏃'):
         await ctx.send('So you have chosen to flee')
