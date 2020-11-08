@@ -6,10 +6,13 @@ import os
 import random
 from enum import Enum
 
-# Hi Ben
+with open("token.json") as f:
+    tokens = json.load(f)
 
-token = 'Nzc0NjgwMzExMTk1ODkzODAw.X6bTQw.yjYLZGEBc6PVOWS5PiyXdaNsKVg'
-
+token = ''
+for piece in tokens['token']:
+    token = token + piece
+print(token)
 save_folder = os.path.abspath(os.getcwd())+"/saves"
 client = commands.Bot(command_prefix = '$')
 
