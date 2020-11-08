@@ -122,6 +122,7 @@ async def combatEncounter(ctx):
                         break
                 else:
                     await ctx.send(f'The {monsterName} damage did not do anything.')
+                    await ctx.send(f'You still have {data["health"]} HP left!')
             with open(f'{save_folder}/{ctx.author}.json', 'w') as f:
                 json.dump(data, f)
         elif (reaction.emoji == '🏃'):
