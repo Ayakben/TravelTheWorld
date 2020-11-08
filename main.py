@@ -16,10 +16,21 @@ combat = ['🗡️', '🏃']
 
 command_list = ['move']
 
+#Experimental weapon classes
+class Weapon:
+    def __init__(self, name, emote, damage):
+        self.name = name
+        self.emote = emote
+        self.damage = damage
+
+Sword = Weapon('Sword', '🗡️', 3)
+Shield = Weapon('Shield', '🛡️', 0)
+
 class Monster:
-    def __init__(self, health, damage):
+    def __init__(self, health, damage, chanceToHit):
         self.health = health
         self.damage = damage
+        self.chanceToHit = chanceToHit
 
 Hillbilly = Monster(10, 1)
 
