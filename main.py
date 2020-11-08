@@ -6,6 +6,8 @@ import os
 import random
 from enum import Enum
 
+# Hi nick
+
 token = 'Nzc0NjgwMzExMTk1ODkzODAw.X6bTQw.yjYLZGEBc6PVOWS5PiyXdaNsKVg'
 
 save_folder = os.path.abspath(os.getcwd())+"/saves"
@@ -16,7 +18,7 @@ combat = ['🗡️', '🏃']
 
 command_list = ['move']
 
-#Experimental weapon classes
+# Experimental weapon classes
 class Weapon:
     def __init__(self, emote, damage, chanceToHit):
         self.emote = emote
