@@ -18,13 +18,16 @@ command_list = ['move']
 
 #Experimental weapon classes
 class Weapon:
-    def __init__(self, name, emote, damage):
-        self.name = name
+    def __init__(self, emote, damage, chanceToHit):
         self.emote = emote
         self.damage = damage
+        self.chanceToHit = chanceToHit
 
-Sword = Weapon('Sword', '🗡️', 3)
-Shield = Weapon('Shield', '🛡️', 0)
+weaponEnums = {
+    'Fist': Weapon('✊' ,1, .7),
+    'Sword': Weapon('🗡️', 3, .8),
+    'Shield': Weapon('🛡️', 0, 1)
+}
 
 class Monster:
     def __init__(self, health, damage, chanceToHit):
@@ -32,18 +35,8 @@ class Monster:
         self.damage = damage
         self.chanceToHit = chanceToHit
 
-Hillbilly = Monster(10, 1)
-
-print(Hillbilly.damage)
-
-loot = {
-    'Sword': '🗡️',
-    'Shield': '🛡️'
-}
-
-damageCharts = {
-    'Fist': 1,
-    'Sword': 3
+monsterEnums = {
+    'skeleton': Monster(5, 1, .6)
 }
 
 #TODO: Implement either a state or flage system so that a player can only use certain commands while in the middle of an action
@@ -66,15 +59,22 @@ async def combatEncounter(ctx):
 
         message = await ctx.send('Please choose what weapon to use')
 
-        for weapon in data['weapons'].values():
-            await message.add_reaction(weapon)
+        weaponEmotes = []
+        for weapon in data['weapons']:
+            weaponEmotes.append(weaponEnums[weapon].emote)
+            await message.add_reaction(weaponEnums[weapon].emote)
 
         def checktwo(reaction, user):
-            return str(reaction.emoji) in data['weapons'].values() and user == ctx.author
+            return str(reaction.emoji) in weaponEmotes and user == ctx.author
 
         reaction, user = await client.wait_for('reaction_add', check=checktwo)
 
+        for weapon in weaponEnums:
+            if(weaponEnums[weapon].emote == reaction.emoji):
+                await ctx.send(f'You attacked with your {weapon}')
+                break
 
+        """
         innards = data["weapons"]
         midwards = list(innards.values())
         outards = midwards.index(reaction.emoji)
@@ -83,22 +83,28 @@ async def combatEncounter(ctx):
         sending = f'You attacked with your {paper}'
 
         await ctx.send(sending)
+        """
         #TODO: Implement combat system where health changes
 
     elif (reaction.emoji == '🏃'):
         await ctx.send('So you have chosen to flee')
+
+
+
+
     else:
         await ctx.send('The bot is broken! SEND HELP!!')
 
 
 
 async def lootEncounter(ctx):
-    RNJesus = random.randrange(len(loot))
+    RNJesus = random.randrange(1, len(weaponEnums))
     with open(f'{save_folder}/{ctx.author}.json') as f:
         data = json.load(f)
-    message = await ctx.send(f'You found a {list(loot)[RNJesus]}!')
-    await message.add_reaction(loot[list(loot)[RNJesus]])
-    data['weapons'][list(loot)[RNJesus]] = loot[list(loot)[RNJesus]]
+    message = await ctx.send(f'You found a {weaponEnums[RNJesus]}!')
+    await message.add_reaction(list(weaponEnums.values())[RNJesus].emote)
+    if(weaponEnums[RNJesus] not in data['weapons']):
+        data['weapons'].append(weaponEnums[RNJesus])
     with open(f'{save_folder}/{ctx.author}.json', 'w') as f:
         json.dump(data, f)
 
@@ -176,7 +182,7 @@ async def play(ctx):
             'tested': {},
             'items': {},
             'equipment': {},
-            'weapons': {'Fist': '✊'}
+            'weapons': ['Fist'] #'✊'
         }
 
         with open(save_path_guess, 'w') as f:
