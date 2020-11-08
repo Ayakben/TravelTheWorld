@@ -6,7 +6,7 @@ import os
 import random
 from enum import Enum
 
-# Hi nick
+# Hi Ben
 
 token = 'Nzc0NjgwMzExMTk1ODkzODAw.X6bTQw.yjYLZGEBc6PVOWS5PiyXdaNsKVg'
 
