@@ -22,21 +22,37 @@ async def combatEncounter(ctx):
     message = await ctx.send("You encounter an asshole. Do you fight or flee? Look I'm paid to code not write")
     for emoji in combat:
         await message.add_reaction(emoji)
+
     def check(reaction, user):
         return str(reaction.emoji) in combat and user == ctx.author
-    reaction, user = await client.wait_for('reaction_add', check = check)
+
+
+    reaction, user = await client.wait_for('reaction_add', check=check)
 
     if(reaction.emoji == '🗡️'):
         await ctx.send('⚔️So you have chosen to fight⚔️')
         with open(f'{save_folder}/{ctx.author}.json') as f:
             data = json.load(f)
-        def check(reaction, user):
-            return str(reaction.emoji) in data['weapons'].values() and user == ctx.author
+
         message = await ctx.send('Please choose what weapon to use')
+
         for weapon in data['weapons'].values():
             await message.add_reaction(weapon)
-        reaction, user = await client.wait_for('add_reaction', check = check)
-        await ctx.send(f'You attacked with your {data["weapons"].keys()[data["weapons"].values().index(reaction)]}')
+
+        def checktwo(reaction, user):
+            return str(reaction.emoji) in data['weapons'].values() and user == ctx.author
+
+        reaction, user = await client.wait_for('reaction_add', check=checktwo)
+
+
+        innards = data["weapons"]
+        midwards = list(innards.values())
+        outards = midwards.index(reaction.emoji)
+        rock = list(data["weapons"].keys())
+        paper = rock[outards]
+        sending = f'You attacked with your {paper}'
+
+        await ctx.send(sending)
         #TODO: Implement combat system where health changes
 
     elif (reaction.emoji == '🏃'):
@@ -160,12 +176,14 @@ async def action(ctx):
     reaction, user = await client.wait_for('reaction_add', check = check)
     #TODO: Make the movement matter (right now it doesnt matter what direction you pick)
 
-    RNJesus = random.randrange(20)
+    #RNJesus = random.randrange(20)
+    RNJesus = 0
     if RNJesus == 19:
         await ctx.send('🍆Your dick is huge🍆')
     else:
         #Look I know that this is terrible code but Python is stupid and doesnt have switch statements, and I couldn't be bothered to make lamdas or enum functions so deal with it; I have other shit to do and you guys are not helping
-        RNJesus = random.randrange(2)
+        #RNJesus = random.randrange(2)
+        RNJesus = 0
         if RNJesus == 0:
             await combatEncounter(ctx)
         elif RNJesus == 1:
