@@ -11,7 +11,7 @@ token = 'Nzc0NjgwMzExMTk1ODkzODAw.X6bTQw.yjYLZGEBc6PVOWS5PiyXdaNsKVg'
 save_folder = os.path.abspath(os.getcwd())+"/saves"
 client = commands.Bot(command_prefix = '$')
 
-directions = ['⬆','⬇','⬅','➡']
+directions = ['⬆', '⬇', '⬅', '➡']
 combat = ['🗡️', '🏃']
 
 command_list = ['move']
@@ -34,6 +34,7 @@ async def combatEncounter(ctx):
         for weapon in data['weapons'].values():
             await message.add_reaction(weapon)
         reaction, user = await client.wait_for('add_reaction', check = check)
+        print('got here')
         await ctx.send(f'You attacked with your {data["weapons"].keys()[data["weapons"].values().index(reaction)]}')
         #TODO: Implement combat system where health changes
 
@@ -49,11 +50,11 @@ loot = {
 
 async def lootEncounter(ctx):
     RNJesus = random.randrange(2)
-    def check(reaction, user):
-        return str(reaction.emoji) == loot[list(loot)[RNJesus]] and user == ctx.author
-    message = await ctx.send(f'You found a {list(loot)[RNJesus]}! Please click on it to pick it up')
+    with open(f'{save_folder}/{ctx.author}.json') as f:
+        data = json.load(f)
+    message = await ctx.send(f'You found a {list(loot)[RNJesus]}!')
     await message.add_reaction(loot[list(loot)[RNJesus]])
-    await client.wait_for('add_reaction', check = check)
+    data[list(loot)[RNJesus]] = loot[list(loot)[RNJesus]]
 
 @client.command()
 async def ping(ctx):
