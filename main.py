@@ -16,6 +16,25 @@ combat = ['🗡️', '🏃']
 
 command_list = ['move']
 
+class Monster:
+    def __init__(self, health, damage):
+        self.health = health
+        self.damage = damage
+
+Hillbilly = Monster(10, 1)
+
+print(Hillbilly.damage)
+
+loot = {
+    'Sword': '🗡️',
+    'Shield': '🛡️'
+}
+
+damageCharts = {
+    'Fist': 1,
+    'Sword': 3
+}
+
 #TODO: Implement either a state or flage system so that a player can only use certain commands while in the middle of an action
 
 async def combatEncounter(ctx):
@@ -44,10 +63,7 @@ async def combatEncounter(ctx):
     else:
         await ctx.send('The bot is broken! SEND HELP!!')
 
-loot = {
-    'Sword': '🗡️',
-    'Shield': '🛡️'
-}
+
 
 async def lootEncounter(ctx):
     RNJesus = random.randrange(len(loot))
