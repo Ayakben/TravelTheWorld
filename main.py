@@ -43,80 +43,80 @@ monsterEnums = {
 #TODO: Implement either a state or flag system so that a player can only use certain commands while in the middle of an action
 
 async def combatEncounter(ctx):
-    RNJesus = random.randrange(len(monsterEnums))
-    monsterName = list(monsterEnums.keys())[RNJesus]
-    message = await ctx.send(f"You encountered a(n) {monsterName}. Do you fight or flee?")
-    for emoji in combat:
-        await message.add_reaction(emoji)
+    with open(f'{save_folder}/{ctx.author}.json') as f:
+        data = json.load(f)
+    if data['state'] == 2:
+        RNJesus = random.randrange(len(monsterEnums))
+        monsterName = list(monsterEnums.keys())[RNJesus]
+        message = await ctx.send(f"You encountered a(n) {monsterName}. Do you fight or flee?")
+        for emoji in combat:
+            await message.add_reaction(emoji)
 
-    def check(reaction, user):
-        return str(reaction.emoji) in combat and user == ctx.author
+        def check(reaction, user):
+            return str(reaction.emoji) in combat and user == ctx.author
 
 
-    reaction, user = await client.wait_for('reaction_add', check=check)
+        reaction, user = await client.wait_for('reaction_add', check=check)
 
-    if(reaction.emoji == '🗡️'):
-        await ctx.send('⚔️So you have chosen to fight⚔️')
-        randomMonster = monsterEnums[monsterName] #This creates the instance of the monster the player will be fighting
-        with open(f'{save_folder}/{ctx.author}.json') as f:
-            data = json.load(f)
+        if(reaction.emoji == '🗡️'):
+            await ctx.send('⚔️So you have chosen to fight⚔️')
+            randomMonster = monsterEnums[monsterName] #This creates the instance of the monster the player will be fighting
 
-        #TODO: Implement combat loop
-        inCombat = True
-        while(True):
-            message = await ctx.send('Please choose what weapon to use')
 
-            weaponEmotes = []
-            for weapon in data['weapons']:
-                weaponEmotes.append(weaponEnums[weapon].emote)
-                await message.add_reaction(weaponEnums[weapon].emote)
+            while True:
+                message = await ctx.send('Please choose what weapon to use')
 
-            def checktwo(reaction, user):
-                return str(reaction.emoji) in weaponEmotes and user == ctx.author
+                weaponEmotes = []
+                for weapon in data['weapons']:
+                    weaponEmotes.append(weaponEnums[weapon].emote)
+                    await message.add_reaction(weaponEnums[weapon].emote)
 
-            reaction, user = await client.wait_for('reaction_add', check=checktwo)
+                def checktwo(reaction, user):
+                    return str(reaction.emoji) in weaponEmotes and user == ctx.author
 
-            #The player attacks
-            for weapon in weaponEnums:
-                if(weaponEnums[weapon].emote == reaction.emoji):
-                    await ctx.send(f'You attacked with your {weapon}')
-                    if(random.random() < weaponEnums[weapon].chanceToHit):
-                        await ctx.send(f'You hit the {monsterName} for {weaponEnums[weapon].damage} damage!')
-                        randomMonster.health = randomMonster.health - weaponEnums[weapon].damage
-                    else:
-                        await ctx.send('You missed')
+                reaction, user = await client.wait_for('reaction_add', check=checktwo)
+
+                #The player attacks
+                for weapon in weaponEnums:
+                    if(weaponEnums[weapon].emote == reaction.emoji):
+                        await ctx.send(f'You attacked with your {weapon}')
+                        if(random.random() < weaponEnums[weapon].chanceToHit):
+                            await ctx.send(f'You hit the {monsterName} for {weaponEnums[weapon].damage} damage!')
+                            randomMonster.health = randomMonster.health - weaponEnums[weapon].damage
+                        else:
+                            await ctx.send('You missed')
+                        break
+                if (randomMonster.health <= 0):
+                    await ctx.send(f'Congrats on beating the {monsterName}')
+                    data['state'] = 2
                     break
-            if (randomMonster.health <= 0):
-                await ctx.send(f'Congrats on beating the {monsterName}')
-                break
-            if (random.random() < randomMonster.chanceToHit):
-                await ctx.send(f'The {monsterName} does {randomMonster.damage} damage')
-                #TODO: Add player health loss and a condtitional to check if the player has been killed
-            else:
-                await ctx.send(f'The {monsterName} missed')
-
-
-
-
-    elif (reaction.emoji == '🏃'):
-        await ctx.send('So you have chosen to flee')
-
-
-
-
-    else:
-        await ctx.send('The bot is broken! SEND HELP!!')
+                if (random.random() < randomMonster.chanceToHit):
+                    await ctx.send(f'The {monsterName} does {randomMonster.damage} damage')
+                    data['health'] = data['health'] - randomMonster.damage
+                    if data['health'] <= 0:
+                        await ctx.send('Game over')
+                        data['state'] = 0
+                        break
+                else:
+                    await ctx.send(f'The {monsterName} missed')
+            with open(f'{save_folder}/{ctx.author}.json', 'w') as f:
+                json.dump(data, f)
+        elif (reaction.emoji == '🏃'):
+            await ctx.send('So you have chosen to flee')
+        else:
+            await ctx.send('The bot is broken! SEND HELP!!')
 
 
 
 async def lootEncounter(ctx):
-    RNJesus = random.randrange(1, len(weaponEnums))
     with open(f'{save_folder}/{ctx.author}.json') as f:
         data = json.load(f)
+    RNJesus = random.randrange(1, len(weaponEnums))
     message = await ctx.send(f'You found a {weaponEnums[RNJesus]}!')
     await message.add_reaction(list(weaponEnums.values())[RNJesus].emote)
     if(weaponEnums[RNJesus] not in data['weapons']):
         data['weapons'].append(weaponEnums[RNJesus])
+    data['state'] = 2
     with open(f'{save_folder}/{ctx.author}.json', 'w') as f:
         json.dump(data, f)
 
@@ -189,6 +189,7 @@ async def play(ctx):
             'current_loc': "",
             'fund': 0,
             'health': 30,
+            'state': 0,
             'infection': False,
             'symptoms': {},
             'tested': {},
@@ -209,7 +210,7 @@ async def play(ctx):
     await ctx.send('You have selected: '+str(reaction.content))
 
 @client.command()
-async def action(ctx):
+async def move(ctx):
     message = await ctx.send("What direction would you like to go?")
 
     #Puts all the direction emojis under the message
@@ -221,14 +222,12 @@ async def action(ctx):
     reaction, user = await client.wait_for('reaction_add', check = check)
     #TODO: Make the movement matter (right now it doesnt matter what direction you pick)
 
-    #RNJesus = random.randrange(20)
-    RNJesus = 0
+    RNJesus = random.randrange(20)
     if RNJesus == 19:
-        await ctx.send('🍆Your dick is huge🍆')
+        await ctx.send('You Win')
     else:
         #Look I know that this is terrible code but Python is stupid and doesnt have switch statements, and I couldn't be bothered to make lamdas or enum functions so deal with it; I have other shit to do and you guys are not helping
-        #RNJesus = random.randrange(2)
-        RNJesus = 0
+        RNJesus = random.randrange(2)
         if RNJesus == 0:
             await combatEncounter(ctx)
         elif RNJesus == 1:
