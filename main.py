@@ -106,6 +106,7 @@ async def combatEncounter(ctx):
                 if (random.random() < randomMonster.chanceToHit):
                     damage = random.randint(randomMonster.damage_min, randomMonster.damage_max+1)
                     await ctx.send(f'The {monsterName} does {damage} damage to you.')
+                    preformat_damage = damage
                     if weaponEnums[weapon].damage_reduction != 0:
                         await ctx.send(f'You used {weapon} to block the damage!')
                         preformat_damage = damage - weaponEnums[weapon].damage_reduction
